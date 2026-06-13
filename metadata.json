@@ -1,0 +1,6 @@
+{
+  "name": "نظام مكة للصياغة - النماذج الديناميكية",
+  "description": "نظام إدارة الأقسام والعمليات المخصص لإنشاء وتعبئة نماذج الفواتير المحاسبية للصياغة والذهب.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

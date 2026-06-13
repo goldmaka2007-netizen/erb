@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "Section": {
+      "title": "Section",
+      "description": "A top-level category in the accounting system",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "createdAt": { "type": "number", "description": "Timestamp" },
+        "updatedAt": { "type": "number", "description": "Timestamp" }
+      },
+      "required": ["userId", "name", "createdAt", "updatedAt"]
+    },
+    "Operation": {
+      "title": "Operation",
+      "description": "An operation or process inside a section",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "sectionId": { "type": "string" },
+        "name": { "type": "string" },
+        "formConfig": { "type": "string", "description": "A JSON string of form fields configuration" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["userId", "sectionId", "name", "formConfig", "createdAt", "updatedAt"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A generated journal entry or invoice submitted via an operation's form",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "operationId": { "type": "string" },
+        "transactionDate": { "type": "string" },
+        "invoiceNumber": { "type": "string" },
+        "operationType": { "type": "string" },
+        "debitAccount": { "type": "string" },
+        "creditAccount": { "type": "string" },
+        "cashAmount": { "type": "number" },
+        "weight": { "type": "number" },
+        "caliber": { "type": "number" },
+        "weightArabic": { "type": "number" },
+        "quantity": { "type": "number" },
+        "transactionId": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["userId", "operationId", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/sections/{sectionId}": {
+      "schema": { "$ref": "#/entities/Section" },
+      "description": "Sections owned by a user"
+    },
+    "/users/{userId}/operations/{operationId}": {
+      "schema": { "$ref": "#/entities/Operation" },
+      "description": "Operations owned by a user"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Transactions owned by a user"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    function isSignedIn() { return request.auth != null; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    
+    function isValidSection(data) {
+      return data.userId == request.auth.uid && data.name is string;
+    }
+
+    function isValidOperation(data) {
+      return data.userId == request.auth.uid && data.name is string && data.sectionId is string;
+    }
+
+    function isValidTransaction(data) {
+      return data.userId == request.auth.uid && data.operationId is string;
+    }
+
+    match /users/{userId} {
+      match /sections/{sectionId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn() && request.auth.uid == userId && isValidId(sectionId) && isValidSection(incoming());
+        allow update: if isSignedIn() && request.auth.uid == userId && isValidId(sectionId) && isValidSection(incoming()) && incoming().userId == existing().userId && incoming().createdAt == existing().createdAt && incoming().diff(existing()).affectedKeys().hasAny(['name', 'description', 'updatedAt']);
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(sectionId);
+      }
+      
+      match /operations/{operationId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn() && request.auth.uid == userId && isValidId(operationId) && isValidOperation(incoming()) && exists(/databases/$(database)/documents/users/$(userId)/sections/$(incoming().sectionId));
+        allow update: if isSignedIn() && request.auth.uid == userId && isValidId(operationId) && isValidOperation(incoming()) && incoming().userId == existing().userId && incoming().sectionId == existing().sectionId && incoming().createdAt == existing().createdAt && incoming().diff(existing()).affectedKeys().hasAny(['name', 'formConfig', 'updatedAt']);
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(operationId);
+      }
+      
+      match /transactions/{transactionId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow create: if isSignedIn() && request.auth.uid == userId && isValidId(transactionId) && isValidTransaction(incoming()) && exists(/databases/$(database)/documents/users/$(userId)/operations/$(incoming().operationId));
+        // Transactions are append-only. No updates allowed for basic security.
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+  }
+}
