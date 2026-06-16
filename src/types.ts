@@ -20,6 +20,7 @@ export interface FormField {
   _rawOptions?: string; // transient raw string for UI
   defaultValue?: string | number | boolean;
   hidden?: boolean;
+  readonly?: boolean;
 }
 
 export interface Operation {
@@ -59,3 +60,20 @@ export interface Transaction {
   updatedAt: number;
   [key: string]: any; // Allow for other dynamic fields
 }
+
+export const STANDARD_COLUMNS: FormField[] = [
+  { name: 'transaction_date', label: 'التاريخ', type: 'date', required: false },
+  { name: 'invoice_number', label: 'رقم الفاتورة', type: 'text', required: false },
+  { name: 'debit_account', label: 'حساب المدين (من حساب)', type: 'select', options: ['الخزنة', 'تيفيت الكسر', 'مخزون الذهب عيار 18', 'مخزون الذهب عيار 21', 'مخزون الذهب عيار 24', 'كسر افرنجي', 'الصافي'], required: false },
+  { name: 'credit_account', label: 'حساب الدائن (إلى حساب)', type: 'select', options: ['الخزنة', 'تيفيت الكسر', 'مخزون الذهب عيار 18', 'مخزون الذهب عيار 21', 'مخزون الذهب عيار 24', 'كسر افرنجي', 'الصافي'], required: false },
+  { name: 'cash_amount', label: 'المبلغ نقداً', type: 'number', required: false },
+  { name: 'weight', label: 'الوزن القائم', type: 'number', required: false },
+  { name: 'caliber', label: 'العيار', type: 'number', required: false },
+  { name: 'factor', label: 'المعامل', type: 'number', required: false },
+  { name: 'market_price', label: 'سعر السوق', type: 'number', required: false },
+  { name: 'weight_arabic', label: 'الوزن العربي', type: 'number', required: false, readonly: true },
+  { name: 'quantity', label: 'العدد', type: 'number', required: false },
+  { name: 'customer_name', label: 'اسم العميل', type: 'text', required: false },
+  { name: 'phone_number', label: 'رقم التليفون', type: 'text', required: false },
+  { name: 'notes', label: 'ملاحظات', type: 'text', required: false }
+];

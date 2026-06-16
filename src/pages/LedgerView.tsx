@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { subscribeToAllTransactions } from '../lib/db';
+import { subscribeToAllTransactions, deleteTransaction } from '../lib/db';
 import { Transaction } from '../types';
+import { Trash2 } from 'lucide-react';
 
 export default function LedgerView() {
   const { user } = useAuth();
@@ -17,7 +18,16 @@ export default function LedgerView() {
     return unsub;
   }, [user]);
 
+  const [deletingTxId, setDeletingTxId] = useState<string | null>(null);
+
+  const handleDelete = async (txId: string) => {
+    if (!user) return;
+    await deleteTransaction(user.uid, txId);
+    setDeletingTxId(null);
+  };
+
   if (loading) return <div className="text-center py-12 text-teal-400 text-xs">جاري التحميل...</div>;
+
 
   return (
     <div className="space-y-6">
@@ -48,12 +58,13 @@ export default function LedgerView() {
               <th className="px-6 py-4 text-right text-[10px] font-bold text-teal-400 uppercase tracking-widest whitespace-nowrap">سعر السوق</th>
               <th className="px-6 py-4 text-right text-[10px] font-bold text-teal-400 uppercase tracking-widest whitespace-nowrap">المعامل</th>
               <th className="px-6 py-4 text-right text-[10px] font-bold text-teal-400 uppercase tracking-widest whitespace-nowrap">ملاحظات</th>
+              <th className="px-6 py-4 text-center text-[10px] font-bold text-teal-400 uppercase tracking-widest whitespace-nowrap">إجراءات</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {transactions.length === 0 && (
               <tr>
-                <td colSpan={15} className="px-6 py-8 text-center text-xs text-gray-500">لا توجد سجلات.</td>
+                <td colSpan={16} className="px-6 py-8 text-center text-xs text-gray-500">لا توجد سجلات.</td>
               </tr>
             )}
             {transactions.map((tx) => (
@@ -74,13 +85,13 @@ export default function LedgerView() {
                   {tx.creditAccount || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-xs text-teal-500 font-mono">
-                  {tx.cashAmount ? Number(tx.cashAmount).toLocaleString('en-US') : '-'}
+                  {tx.cashAmount ? Math.round(Number(tx.cashAmount)).toLocaleString('en-US') : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-xs text-yellow-500 font-mono">
-                  {tx.weight || '-'}
+                  {tx.weight ? Number(tx.weight).toFixed(2) : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-xs text-yellow-400 font-mono">
-                  {tx.weightArabic || '-'}
+                  {tx.weightArabic ? Number(tx.weightArabic).toFixed(2) : '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-400 font-mono">
                   {tx.caliber || '-'}
@@ -102,6 +113,22 @@ export default function LedgerView() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-400 truncate max-w-[200px]" title={tx.notes}>
                   {tx.notes || '-'}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-center">
+                  {deletingTxId === tx.id ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <button onClick={() => handleDelete(tx.id!)} className="bg-red-500/20 text-red-500 px-2 py-1 rounded text-[10px] hover:bg-red-500/30 font-bold transition-all">تأكيد</button>
+                      <button onClick={() => setDeletingTxId(null)} className="bg-white/5 text-gray-400 px-2 py-1 rounded text-[10px] hover:bg-white/10 font-bold transition-all">إلغاء</button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setDeletingTxId(tx.id!)}
+                      className="p-1.5 text-red-500/70 hover:text-red-400 bg-red-500/10 hover:bg-red-500/20 rounded transition-colors"
+                      title="حذف القيد"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './hooks/useAuth';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
+import SectionsList from './pages/SectionsList';
 import SectionView from './pages/SectionView';
 import OperationView from './pages/OperationView';
 import Settings from './pages/Settings';
@@ -24,6 +25,7 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Dashboard />} />
+            <Route path="sections" element={<SectionsList />} />
             <Route path="sections/:sectionId" element={<SectionView />} />
             <Route path="sections/:sectionId/operations/:operationId" element={<OperationView />} />
             <Route path="settings" element={<Settings />} />

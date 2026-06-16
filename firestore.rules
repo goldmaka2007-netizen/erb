@@ -32,17 +32,20 @@ service cloud.firestore {
       
       match /operations/{operationId} {
         allow read: if isSignedIn() && request.auth.uid == userId;
-        allow create: if isSignedIn() && request.auth.uid == userId && isValidId(operationId) && isValidOperation(incoming()) && exists(/databases/$(database)/documents/users/$(userId)/sections/$(incoming().sectionId));
-        allow update: if isSignedIn() && request.auth.uid == userId && isValidId(operationId) && isValidOperation(incoming()) && incoming().userId == existing().userId && incoming().sectionId == existing().sectionId && incoming().createdAt == existing().createdAt && incoming().diff(existing()).affectedKeys().hasAny(['name', 'formConfig', 'updatedAt']);
+        allow create: if isSignedIn() && request.auth.uid == userId && isValidId(operationId) && isValidOperation(incoming());
+        allow update: if isSignedIn() && request.auth.uid == userId && isValidId(operationId) && isValidOperation(incoming());
         allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(operationId);
+      }
+      
+      match /settings/{docId} {
+        allow read, write: if isSignedIn() && request.auth.uid == userId;
       }
       
       match /transactions/{transactionId} {
         allow read: if isSignedIn() && request.auth.uid == userId;
-        allow create: if isSignedIn() && request.auth.uid == userId && isValidId(transactionId) && isValidTransaction(incoming()) && exists(/databases/$(database)/documents/users/$(userId)/operations/$(incoming().operationId));
-        // Transactions are append-only. No updates allowed for basic security.
-        allow update: if false;
-        allow delete: if false;
+        allow create: if isSignedIn() && request.auth.uid == userId && isValidId(transactionId) && isValidTransaction(incoming());
+        allow update: if isSignedIn() && request.auth.uid == userId && isValidTransaction(incoming()) && incoming().userId == existing().userId;
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(transactionId);
       }
     }
   }
