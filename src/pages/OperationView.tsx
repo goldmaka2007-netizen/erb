@@ -3,13 +3,15 @@ import { useAuth } from '../hooks/useAuth';
 import { useAccounts } from '../hooks/useAccounts';
 import { subscribeToOperations, subscribeToTransactions, createTransaction, getNextInvoiceNumber, getInvoicePrefix, deleteTransaction, subscribeToSections } from '../lib/db';
 import { Operation, FormField, Transaction, STANDARD_COLUMNS, Section } from '../types';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowRight, Save, History, Plus, Trash2 } from 'lucide-react';
 
 export default function OperationView() {
   const { user } = useAuth();
   const accounts = useAccounts();
   const { sectionId, operationId } = useParams<{ sectionId: string, operationId: string }>();
+  const [searchParams] = useSearchParams();
+  const dateParam = searchParams.get('date');
   const [operation, setOperation] = useState<Operation | null>(null);
   const [sectionName, setSectionName] = useState<string>('');
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -28,7 +30,7 @@ export default function OperationView() {
       } else if (f.type === 'boolean') {
         initial[f.name] = false;
       } else if (f.type === 'date' && f.name === 'transaction_date') {
-        initial[f.name] = new Date().toISOString().split('T')[0];
+        initial[f.name] = dateParam || new Date().toISOString().split('T')[0];
       }
     });
     return initial;
@@ -45,7 +47,7 @@ export default function OperationView() {
       
       // Auto-set transaction date to today by default if field exists
       if (parsedFields.some((f: FormField) => f.name === 'transaction_date')) {
-        initial['transaction_date'] = new Date().toISOString().split('T')[0];
+        initial['transaction_date'] = dateParam || new Date().toISOString().split('T')[0];
       }
 
       // Auto-set market price based on global setting if available

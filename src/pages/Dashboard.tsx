@@ -82,10 +82,14 @@ export default function Dashboard() {
             إضافة قيد 
           </Link>
 
-          <div className="flex gap-4 relative z-10">
+          <div className="flex gap-4 relative z-10 flex-wrap justify-center">
+            <Link to="/journal" className="px-6 py-3 bg-[#1a1a1a] border border-white/10 hover:border-white/20 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all">
+              <BookOpen className="w-4 h-4 text-teal-400" />
+              يومية الخزينة
+            </Link>
             <Link to="/ledger" className="px-6 py-3 bg-[#1a1a1a] border border-white/10 hover:border-white/20 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all">
-              <BookOpen className="w-4 h-4" />
-              الدفتر
+              <BookOpen className="w-4 h-4 text-gray-400" />
+              الدفتر المجمع
             </Link>
             <Link to="/settings" className="px-6 py-3 bg-[#1a1a1a] border border-white/10 hover:border-white/20 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-all">
               <Settings className="w-4 h-4 text-gray-400" />

@@ -2,22 +2,31 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { subscribeToAllTransactions, subscribeToSections, subscribeToAllOperations } from '../lib/db';
 import { Transaction, Section, Operation } from '../types';
-import { Calendar, Wallet, ArrowDownRight, ArrowUpRight, Ban, Folder, FileText } from 'lucide-react';
+import { Calendar, Wallet, ArrowDownRight, ArrowUpRight, Ban, Folder, FileText, Plus, Clock, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export default function DailyJournalView() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [sections, setSections] = useState<Section[]>([]);
   const [operations, setOperations] = useState<Operation[]>([]);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   
   // Default to today's date in YYYY-MM-DD format
   const [selectedDate, setSelectedDate] = useState(() => {
     const today = new Date();
-    // Use local time for the date string
     const offset = today.getTimezoneOffset();
     return new Date(today.getTime() - (offset*60*1000)).toISOString().split('T')[0];
   });
+
+  const goToLastActiveDay = () => {
+    if (transactions.length === 0) return;
+    const dates = transactions.map(t => t.transactionDate || new Date(t.createdAt).toISOString().split('T')[0]);
+    const maxDate = dates.reduce((a, b) => a > b ? a : b);
+    setSelectedDate(maxDate);
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -100,14 +109,33 @@ export default function DailyJournalView() {
           <p className="text-[10px] text-teal-400 mt-1 uppercase tracking-wide">ملخص حركة الخزينة والقيود ليوم محدد</p>
         </div>
         
-        <div className="flex items-center gap-3 bg-[#111] p-2 border border-white/10 rounded-xl shadow-lg">
-          <label className="text-xs text-gray-400 mr-2 font-bold">تاريخ اليومية:</label>
-          <input 
-            type="date" 
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="bg-[#1a1a1a] text-white border border-white/5 rounded-lg px-3 py-2 outline-none focus:border-teal-500 font-mono text-sm"
-          />
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={goToLastActiveDay}
+              className="px-3 py-2 bg-[#1a1a1a] hover:bg-white/5 border border-white/10 hover:border-white/20 rounded-lg text-xs text-white transition-all flex items-center gap-2"
+              title="الانتقال إلى آخر يوم مسجل به عمليات"
+            >
+              <Clock className="w-4 h-4 text-gray-400" />
+              آخر يوم مسجل
+            </button>
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="px-3 py-2 bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/20 rounded-lg text-xs text-teal-400 transition-all flex items-center gap-2 font-bold"
+            >
+              <Plus className="w-4 h-4" />
+              إضافة عملية
+            </button>
+          </div>
+          <div className="flex items-center gap-3 bg-[#111] p-2 border border-white/10 rounded-xl shadow-lg mt-3 sm:mt-0 w-full sm:w-auto">
+            <label className="text-xs text-gray-400 mr-2 font-bold shrink-0">تاريخ اليومية:</label>
+            <input 
+              type="date" 
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="bg-[#1a1a1a] text-white border border-white/5 rounded-lg px-3 py-2 outline-none focus:border-teal-500 font-mono text-sm w-full"
+            />
+          </div>
         </div>
       </div>
 
@@ -250,6 +278,65 @@ export default function DailyJournalView() {
           </div>
         )}
       </div>
+
+      {/* Add Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#111111] border border-white/10 rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
+            <div className="p-5 border-b border-white/10 flex justify-between items-center bg-[#161616]">
+              <div>
+                <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-teal-400" />
+                  إضافة قيد في ({selectedDate})
+                </h2>
+                <p className="text-xs text-gray-500 mt-1">اختر القسم والعملية لبدء الإدخال في هذا اليوم.</p>
+              </div>
+              <button 
+                onClick={() => setIsAddModalOpen(false)}
+                className="p-2 text-gray-400 hover:text-white bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-y-auto w-full space-y-6">
+              {sections.length === 0 ? (
+                 <p className="text-xs text-gray-400 text-center py-6">لا توجد أقسام مسجلة. يرجى إضافتها من الإعدادات.</p>
+              ) : (
+                sections.map(section => {
+                  const sectionOps = operations.filter(op => op.sectionId === section.id);
+                  if (sectionOps.length === 0) return null;
+                  
+                  return (
+                    <div key={section.id} className="space-y-3">
+                      <div className="flex items-center gap-2 mb-2 px-2">
+                        <Folder className="w-4 h-4 text-teal-400" />
+                        <h3 className="text-sm font-bold text-white">{section.name}</h3>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {sectionOps.map(op => (
+                          <button
+                            key={op.id}
+                            onClick={() => {
+                              navigate(`/sections/${section.id}/operations/${op.id}?date=${selectedDate}`);
+                            }}
+                            className="flex items-center gap-3 p-4 bg-[#161616] border border-white/5 hover:border-teal-500/30 rounded-xl text-right transition-colors group"
+                          >
+                            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-teal-500/10 transition-colors">
+                              <FileText className="w-4 h-4 text-emerald-400" />
+                            </div>
+                            <span className="text-sm text-gray-300 font-medium group-hover:text-white transition-colors">{op.name}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
