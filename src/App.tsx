@@ -9,6 +9,7 @@ import SectionView from './pages/SectionView';
 import OperationView from './pages/OperationView';
 import Settings from './pages/Settings';
 import LedgerView from './pages/LedgerView';
+import DailyJournalView from './pages/DailyJournalView';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -30,6 +31,7 @@ export default function App() {
             <Route path="sections/:sectionId/operations/:operationId" element={<OperationView />} />
             <Route path="settings" element={<Settings />} />
             <Route path="ledger" element={<LedgerView />} />
+            <Route path="journal" element={<DailyJournalView />} />
           </Route>
         </Routes>
       </BrowserRouter>

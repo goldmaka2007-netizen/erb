@@ -52,6 +52,13 @@ export const subscribeToOperations = (userId: string, sectionId: string, cb: (da
   }, (error) => handleFirestoreError(error, OperationType.LIST, `users/${userId}/operations`));
 };
 
+export const subscribeToAllOperations = (userId: string, cb: (data: Operation[]) => void) => {
+  const q = query(collection(db, `users/${userId}/operations`), orderBy('createdAt', 'asc'));
+  return onSnapshot(q, (snapshot) => {
+    cb(snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Operation)));
+  }, (error) => handleFirestoreError(error, OperationType.LIST, `users/${userId}/operations`));
+};
+
 export const subscribeToTransactions = (userId: string, operationId: string, cb: (data: Transaction[]) => void) => {
   const q = query(collection(db, `users/${userId}/transactions`), where('operationId', '==', operationId), orderBy('createdAt', 'desc'));
   return onSnapshot(q, (snapshot) => {

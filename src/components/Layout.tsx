@@ -10,6 +10,7 @@ export default function Layout() {
 
   const navigation = [
     { name: 'الرئيسية (الأقسام)', href: '/', icon: Home },
+    { name: 'يومية الخزنة والعمليات', href: '/journal', icon: BookText },
     { name: 'دفتر اليومية المجمع', href: '/ledger', icon: BookText },
     { name: 'الإعدادات', href: '/settings', icon: Settings },
   ];
